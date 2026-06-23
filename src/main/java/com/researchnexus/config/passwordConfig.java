@@ -1,4 +1,4 @@
-package com.openresearchnexus.research_nexus.config;
+package com.researchnexus.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

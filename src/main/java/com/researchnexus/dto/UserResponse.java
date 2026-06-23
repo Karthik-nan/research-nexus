@@ -1,4 +1,4 @@
-package com.openresearchnexus.research_nexus.dto;
+package com.researchnexus.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

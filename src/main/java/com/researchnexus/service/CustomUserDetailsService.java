@@ -1,7 +1,7 @@
-package com.openresearchnexus.research_nexus.service;
+package com.researchnexus.service;
 
-import com.openresearchnexus.research_nexus.entity.User;
-import com.openresearchnexus.research_nexus.repository.UserRepository;
+import com.researchnexus.entity.User;
+import com.researchnexus.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

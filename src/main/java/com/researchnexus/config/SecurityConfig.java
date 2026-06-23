@@ -1,14 +1,21 @@
-package com.openresearchnexus.research_nexus.config;
+package com.researchnexus.config;
 
-import com.openresearchnexus.research_nexus.security.JwtFilter;
-import com.openresearchnexus.research_nexus.service.CustomUserDetailsService;
+import com.researchnexus.security.JwtFilter;
+import com.researchnexus.service.CustomUserDetailsService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+import org.springframework.security.config.http.SessionCreationPolicy;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -37,24 +44,36 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
 
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
                 .authenticationProvider(
                         authenticationProvider()
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // Public APIs
+                        .requestMatchers(
+                                "/api/users/login",
+                                "/api/users/register"
+                        ).permitAll()
+
+                        // Protected APIs
+                        .requestMatchers(
+                                "/api/documents/**"
+                        ).authenticated()
+
+                        .anyRequest()
+                        .authenticated()
                 )
 
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
-                )
-
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/users/login",
-                                "/api/users/register"
-                        )
-                        .permitAll()
-
-                        .anyRequest()
-                        .authenticated()
                 );
 
         return http.build();
@@ -63,18 +82,18 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
 
-        DaoAuthenticationProvider auth =
+        DaoAuthenticationProvider provider =
                 new DaoAuthenticationProvider();
 
-        auth.setUserDetailsService(
+        provider.setUserDetailsService(
                 userDetailsService
         );
 
-        auth.setPasswordEncoder(
+        provider.setPasswordEncoder(
                 passwordEncoder
         );
 
-        return auth;
+        return provider;
     }
 
     @Bean

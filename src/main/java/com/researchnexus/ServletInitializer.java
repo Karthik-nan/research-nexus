@@ -1,4 +1,4 @@
-package com.openresearchnexus.research_nexus;
+package com.researchnexus;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;

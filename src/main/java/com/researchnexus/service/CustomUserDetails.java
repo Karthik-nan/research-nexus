@@ -1,5 +1,5 @@
-package com.openresearchnexus.research_nexus.service;
-import com.openresearchnexus.research_nexus.entity.User;
+package com.researchnexus.service;
+import com.researchnexus.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

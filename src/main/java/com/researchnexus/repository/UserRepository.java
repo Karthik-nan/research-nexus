@@ -1,6 +1,6 @@
-package com.openresearchnexus.research_nexus.repository;
+package com.researchnexus.repository;
 
-import com.openresearchnexus.research_nexus.entity.User;
+import com.researchnexus.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

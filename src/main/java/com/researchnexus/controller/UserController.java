@@ -1,11 +1,11 @@
-package com.openresearchnexus.research_nexus.controller;
+package com.researchnexus.controller;
 
-import com.openresearchnexus.research_nexus.dto.LoginRequest;
-import com.openresearchnexus.research_nexus.dto.LoginResponse;
-import com.openresearchnexus.research_nexus.dto.UserResponse;
-import com.openresearchnexus.research_nexus.entity.User;
-import com.openresearchnexus.research_nexus.repository.UserRepository;
-import com.openresearchnexus.research_nexus.service.UserService;
+import com.researchnexus.dto.LoginRequest;
+import com.researchnexus.dto.LoginResponse;
+import com.researchnexus.dto.UserResponse;
+import com.researchnexus.entity.User;
+import com.researchnexus.repository.UserRepository;
+import com.researchnexus.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

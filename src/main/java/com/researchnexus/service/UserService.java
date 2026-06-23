@@ -1,8 +1,8 @@
-package com.openresearchnexus.research_nexus.service;
+package com.researchnexus.service;
 
-import com.openresearchnexus.research_nexus.dto.LoginRequest;
-import com.openresearchnexus.research_nexus.dto.LoginResponse;
-import com.openresearchnexus.research_nexus.entity.User;
+import com.researchnexus.dto.LoginRequest;
+import com.researchnexus.dto.LoginResponse;
+import com.researchnexus.entity.User;
 
 import java.util.List;
 import java.util.Optional;

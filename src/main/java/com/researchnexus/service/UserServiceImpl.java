@@ -1,10 +1,10 @@
-    package com.openresearchnexus.research_nexus.service;
-    import com.openresearchnexus.research_nexus.dto.LoginRequest;
-    import com.openresearchnexus.research_nexus.dto.LoginResponse;
-    import com.openresearchnexus.research_nexus.entity.Role;
-    import com.openresearchnexus.research_nexus.entity.User;
-    import com.openresearchnexus.research_nexus.repository.UserRepository;
-    import com.openresearchnexus.research_nexus.util.JwtUtil;
+    package com.researchnexus.service;
+    import com.researchnexus.dto.LoginRequest;
+    import com.researchnexus.dto.LoginResponse;
+    import com.researchnexus.entity.Role;
+    import com.researchnexus.entity.User;
+    import com.researchnexus.repository.UserRepository;
+    import com.researchnexus.util.JwtUtil;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
     import org.springframework.stereotype.Service;
