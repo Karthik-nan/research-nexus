@@ -11,9 +11,11 @@ public interface DocumentService {
     DocumentResponse uploadDocument(
             String title,
             String description,
-            MultipartFile file,
-            String userEmail
-    ) throws IOException;
+            MultipartFile file
+
+    );
 
     List<DocumentResponse> getAllDocuments();
+    byte[] downloadDocument(Long id);
+    void deleteDocument(Long id);
 }

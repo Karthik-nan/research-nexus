@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -17,76 +16,56 @@ public class JwtUtil {
             "mysecretkeymysecretkeymysecretkey123456";
 
     private static final long EXPIRATION_TIME =
-            1000 * 60 * 60;
+            1000 * 60 * 60; // 1 hour
 
     private Key getSignKey() {
-
-        return Keys.hmacShaKeyFor(
-                SECRET.getBytes()
-        );
+        return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 
-    public String generateToken(
-            String email
-    ) {
-
+    // ========================
+    // GENERATE TOKEN
+    // ========================
+    public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
-                .setIssuedAt(
-                        new Date()
-                )
-                .setExpiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + EXPIRATION_TIME
-                        )
-                )
-                .signWith(
-                        getSignKey(),
-                        SignatureAlgorithm.HS256
-                )
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractEmail(
-            String token
-    ) {
-
-        return getClaims(
-                token
-        ).getSubject();
+    // ========================
+    // EXTRACT EMAIL
+    // ========================
+    public String extractEmail(String token) {
+        return extractClaims(token).getSubject();
     }
 
-    public boolean validateToken(
-            String token
-    ) {
+    // ========================
+    // VALIDATE TOKEN
+    // ========================
+    public boolean validateToken(String token, String email) {
 
-        try {
+        String tokenEmail = extractEmail(token);
 
-            getClaims(
-                    token
-            );
-
-            return true;
-
-        } catch (Exception e) {
-
-            return false;
-        }
+        return tokenEmail.equals(email) && !isTokenExpired(token);
     }
 
-    private Claims getClaims(
-            String token
-    ) {
+    // ========================
+    // CHECK EXPIRATION
+    // ========================
+    public boolean isTokenExpired(String token) {
+        return extractClaims(token).getExpiration().before(new Date());
+    }
 
+    // ========================
+    // CLAIMS
+    // ========================
+    private Claims extractClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(
-                        getSignKey()
-                )
+                .setSigningKey(getSignKey())
                 .build()
-                .parseClaimsJws(
-                        token
-                )
+                .parseClaimsJws(token)
                 .getBody();
     }
 }

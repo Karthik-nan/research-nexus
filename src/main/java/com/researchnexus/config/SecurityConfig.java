@@ -36,39 +36,33 @@ public class SecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // =========================
+    // SECURITY FILTER CHAIN
+    // =========================
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                .authenticationProvider(
-                        authenticationProvider()
-                )
+                .authenticationProvider(authenticationProvider())
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public APIs
+                        // PUBLIC APIs
                         .requestMatchers(
                                 "/api/users/login",
                                 "/api/users/register"
                         ).permitAll()
 
-                        // Protected APIs
-                        .requestMatchers(
-                                "/api/documents/**"
-                        ).authenticated()
+                        // PROTECTED APIs
+                        .requestMatchers("/api/documents/**").authenticated()
 
-                        .anyRequest()
-                        .authenticated()
+                        .anyRequest().authenticated()
                 )
 
                 .addFilterBefore(
@@ -79,28 +73,26 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // =========================
+    // AUTH PROVIDER
+    // =========================
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
 
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider();
-
-        provider.setUserDetailsService(
-                userDetailsService
-        );
-
-        provider.setPasswordEncoder(
-                passwordEncoder
-        );
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
 
         return provider;
     }
 
+    // =========================
+    // AUTH MANAGER
+    // =========================
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config
     ) throws Exception {
-
         return config.getAuthenticationManager();
     }
 }

@@ -20,9 +20,5 @@ public class DocumentResponse {
     private String filePath;
     private String fileType;
     private LocalDateTime uploadedAt;
-
     private String userName;
-    private String userEmail;
-
-
 }
