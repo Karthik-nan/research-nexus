@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
@@ -106,7 +107,7 @@ public class DocumentServiceImpl implements DocumentService {
                         doc.getUploadedAt(),
                         doc.getUser() != null ? doc.getUser().getName() : "Unknown"
                 ))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     // DOWNLOAD

@@ -61,7 +61,7 @@ public class SecurityConfig {
 
                         // PROTECTED APIs
                         .requestMatchers("/api/documents/**").authenticated()
-
+                        .requestMatchers("/api/projects/**").authenticated()
                         .anyRequest().authenticated()
                 )
 
