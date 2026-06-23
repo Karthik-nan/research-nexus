@@ -1,75 +1,92 @@
-    package com.researchnexus.service;
-    import com.researchnexus.dto.LoginRequest;
-    import com.researchnexus.dto.LoginResponse;
-    import com.researchnexus.entity.Role;
-    import com.researchnexus.entity.User;
-    import com.researchnexus.repository.UserRepository;
-    import com.researchnexus.util.JwtUtil;
-    import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-    import org.springframework.stereotype.Service;
+package com.researchnexus.service;
 
-    import java.util.List;
-    import java.util.Optional;
+import com.researchnexus.dto.LoginRequest;
+import com.researchnexus.dto.LoginResponse;
+import com.researchnexus.dto.UserResponse;
+import com.researchnexus.entity.Role;
+import com.researchnexus.entity.User;
+import com.researchnexus.repository.UserRepository;
+import com.researchnexus.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 
-    @Service
-    public class UserServiceImpl implements UserService{
+import java.util.List;
+import java.util.stream.Collectors;
 
-        @Autowired
-        private  UserRepository userRepository;
+@Service
+public class UserServiceImpl implements UserService {
 
-        @Autowired
-        private BCryptPasswordEncoder encoder;
+    @Autowired
+    private UserRepository userRepository;
 
-        @Autowired
-        private JwtUtil jwtUtil;
+    @Autowired
+    private BCryptPasswordEncoder encoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
 
+    // CREATE USER (REGISTER)
+    @Override
+    public UserResponse createUser(User user) {
 
-        @Override
-        public User createUser(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
 
-            user.setPassword(encoder.encode(user.getPassword()));
-            user.setRole(Role.USER);
-            return userRepository.save(user);
-        }
+        User saved = userRepository.save(user);
 
-        @Override
-        public Optional<User> getUserByEmail(String email) {
-            return userRepository.findByEmail(email);
-        }
+        return new UserResponse(
+                saved.getId(),
+                saved.getName(),
+                saved.getEmail(),
+                saved.getRole()
+        );
+    }
 
-        @Override
-        public List<User> getUserByName(String name) {
-            return userRepository.findByName(name);
-        }
+    // GET USER BY EMAIL
+    @Override
+    public UserResponse getUserByEmail(String email) {
 
-        @Override
-        public User saveUser(User user) {
-            return userRepository.save(user);
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        @Override
-        public LoginResponse login(LoginRequest request) {
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
+    }
 
-            Optional<User> userOpt=userRepository.findByEmail(request.getEmail());
+    // GET USERS BY NAME
+    @Override
+    public List<UserResponse> getUserByName(String name) {
 
-            if(userOpt.isPresent())
-            {
-                User user=userOpt.get();
+        List<User> users = userRepository.findByName(name);
 
-               if(encoder.matches(request.getPassword(),user.getPassword()))
-               {
-                   String token=jwtUtil.generateToken(user.getEmail());
+        return users.stream()
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getRole()
+                ))
+                .collect(Collectors.toList());
+    }
 
-                   LoginResponse response = new LoginResponse(token);
-                   return response;
-               }
+    // LOGIN (JWT)
+    @Override
+    public LoginResponse login(LoginRequest request) {
 
-            }
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (!encoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new LoginResponse(token);
     }
-
-
+}

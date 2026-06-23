@@ -31,4 +31,8 @@ public class ResearchDocument {
 
     private LocalDateTime uploadedAt;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }

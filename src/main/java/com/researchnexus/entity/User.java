@@ -5,6 +5,8 @@ import lombok.*;
 
 import com.researchnexus.entity.Role;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,4 +34,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private List<ResearchDocument> documents;
 }
