@@ -1,11 +1,12 @@
 package com.researchnexus.service;
 
 import com.researchnexus.dto.DocumentResponse;
+import com.researchnexus.entity.Project;
 import com.researchnexus.entity.ResearchDocument;
 import com.researchnexus.entity.User;
+import com.researchnexus.repository.ProjectRepository;
 import com.researchnexus.repository.ResearchDocumentRepository;
 import com.researchnexus.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,34 +22,55 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final ResearchDocumentRepository repository;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    private final ProjectAccessService projectAccessService;
 
-    public DocumentServiceImpl(ResearchDocumentRepository repository,
-                               UserRepository userRepository) {
+    private final String uploadDir = "uploads";
+
+    public DocumentServiceImpl(
+            ResearchDocumentRepository repository,
+            UserRepository userRepository,
+            ProjectRepository projectRepository,
+            ProjectAccessService projectAccessService
+    ) {
         this.repository = repository;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
+        this.projectAccessService = projectAccessService;
     }
 
-    // GET LOGGED IN USER EMAIL
-    private String getLoggedInUserEmail() {
+    private String getEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null || auth.getName() == null ||
-                auth.getName().equals("anonymousUser")) {
-            throw new RuntimeException("User not authenticated");
-        }
-
         return auth.getName();
     }
 
-    // UPLOAD
+    private User getUser() {
+        return userRepository.findByEmail(getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // =========================
+    // UPLOAD (PROJECT RBAC HERE)
+    // =========================
     @Override
-    public DocumentResponse uploadDocument(String title,
-                                           String description,
-                                           MultipartFile file) {
+    public DocumentResponse uploadDocument(
+            String title,
+            String description,
+            MultipartFile file,
+            Long projectId
+    ) {
         try {
+
+            User user = getUser();
+
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new RuntimeException("Project not found"));
+
+            // 🔐 RBAC CHECK
+            if (!projectAccessService.isMember(project, user)) {
+                throw new RuntimeException("Not a project member");
+            }
 
             Path folder = Paths.get(uploadDir);
             if (!Files.exists(folder)) {
@@ -60,22 +82,18 @@ public class DocumentServiceImpl implements DocumentService {
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            String email = getLoggedInUserEmail();
+            ResearchDocument doc = ResearchDocument.builder()
+                    .title(title)
+                    .description(description)
+                    .fileName(fileName)
+                    .filePath(filePath.toString())
+                    .fileType(file.getContentType())
+                    .uploadedAt(LocalDateTime.now())
+                    .user(user)
+                    .project(project)
+                    .build();
 
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            ResearchDocument saved = repository.save(
-                    ResearchDocument.builder()
-                            .title(title)
-                            .description(description)
-                            .fileName(fileName)
-                            .filePath(filePath.toString())
-                            .fileType(file.getContentType())
-                            .uploadedAt(LocalDateTime.now())
-                            .user(user)
-                            .build()
-            );
+            ResearchDocument saved = repository.save(doc);
 
             return new DocumentResponse(
                     saved.getId(),
@@ -93,7 +111,6 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    // GET ALL
     @Override
     public List<DocumentResponse> getAllDocuments() {
         return repository.findAll().stream()
@@ -105,62 +122,36 @@ public class DocumentServiceImpl implements DocumentService {
                         doc.getFilePath(),
                         doc.getFileType(),
                         doc.getUploadedAt(),
-                        doc.getUser() != null ? doc.getUser().getName() : "Unknown"
+                        doc.getUser().getName()
                 ))
                 .collect(Collectors.toList());
     }
 
-    // DOWNLOAD
     @Override
     public byte[] downloadDocument(Long id) {
         try {
 
-            String email = getLoggedInUserEmail();
-
             ResearchDocument doc = repository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Document not found"));
+                    .orElseThrow(() -> new RuntimeException("Not found"));
 
-            if (doc.getUser() == null) {
-                throw new RuntimeException("Document has no owner");
-            }
-
-            if (!doc.getUser().getEmail().equals(email)) {
-                throw new RuntimeException("Not allowed to access this file");
-            }
-
-            Path filePath = Paths.get(doc.getFilePath());
-
-            if (!Files.exists(filePath)) {
-                throw new RuntimeException("File not found");
-            }
-
-            return Files.readAllBytes(filePath);
+            return Files.readAllBytes(Paths.get(doc.getFilePath()));
 
         } catch (Exception e) {
-            throw new RuntimeException("Download failed: " + e.getMessage());
+            throw new RuntimeException("Download failed");
         }
     }
 
-    // DELETE
     @Override
     public void deleteDocument(Long id) {
+
+        ResearchDocument doc = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Not found"));
+
         try {
-            String email = getLoggedInUserEmail();
-
-            ResearchDocument doc = repository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Document not found"));
-
-            if (doc.getUser() == null ||
-                    !doc.getUser().getEmail().equals(email)) {
-                throw new RuntimeException("Not allowed to delete this file");
-            }
-
             Files.deleteIfExists(Paths.get(doc.getFilePath()));
-
             repository.delete(doc);
-
         } catch (Exception e) {
-            throw new RuntimeException("Delete failed: " + e.getMessage());
+            throw new RuntimeException("Delete failed");
         }
     }
 }

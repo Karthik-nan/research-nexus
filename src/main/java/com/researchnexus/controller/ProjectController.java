@@ -1,39 +1,98 @@
-    package com.researchnexus.controller;
+package com.researchnexus.controller;
 
-    import com.researchnexus.dto.ProjectResponse;
-    import com.researchnexus.service.ProjectService;
-    import org.springframework.web.bind.annotation.*;
+import com.researchnexus.dto.AddMemberRequest;
+import com.researchnexus.dto.ProjectResponse;
+import com.researchnexus.entity.Project;
+import com.researchnexus.entity.User;
+import com.researchnexus.repository.ProjectRepository;
+import com.researchnexus.repository.UserRepository;
+import com.researchnexus.service.ProjectAccessService;
+import com.researchnexus.service.ProjectService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
-    import java.util.List;
+import java.util.List;
 
-    @RestController
-    @RequestMapping("/api/projects")
-    public class ProjectController {
+@RestController
+@RequestMapping("/api/projects")
+public class ProjectController {
 
-        private final ProjectService service;
+    private final ProjectService projectService;
+    private final ProjectAccessService accessService;
+    private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
-        public ProjectController(ProjectService service) {
-            this.service = service;
-        }
-
-        @PostMapping
-        public ProjectResponse createProject(
-                @RequestParam String name,
-                @RequestParam String description
-        ) {
-            return service.createProject(name, description);
-        }
-
-        @GetMapping
-        public List<ProjectResponse> getAllProjects() {
-            return service.getAllProjects();
-        }
-
-        @PostMapping("/{projectId}/members")
-        public void addMember(
-                @PathVariable Long projectId,
-                @RequestBody com.researchnexus.dto.AddMemberRequest request
-        ) {
-            service.addMember(projectId, request);
-        }
+    public ProjectController(ProjectService projectService,
+                             ProjectAccessService accessService,
+                             ProjectRepository projectRepository,
+                             UserRepository userRepository) {
+        this.projectService = projectService;
+        this.accessService = accessService;
+        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
     }
+
+    // -------------------------
+    // CURRENT USER
+    // -------------------------
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // -------------------------
+    // CREATE PROJECT
+    // -------------------------
+    @PostMapping
+    public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectResponse request) {
+        return ResponseEntity.ok(
+                projectService.createProject(request.getName(), request.getDescription())
+        );
+    }
+
+    // -------------------------
+    // GET ALL PROJECTS
+    // -------------------------
+    @GetMapping
+    public ResponseEntity<List<ProjectResponse>> getAllProjects() {
+        return ResponseEntity.ok(projectService.getAllProjects());
+    }
+
+    // -------------------------
+    // ADD MEMBER (OWNER ONLY)
+    // -------------------------
+    @PostMapping("/{projectId}/members")
+    public ResponseEntity<String> addMember(
+            @PathVariable Long projectId,
+            @RequestBody AddMemberRequest request) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (!accessService.isOwner(project, getCurrentUser())) {
+            return ResponseEntity.status(403).body("Only OWNER can add members");
+        }
+
+        projectService.addMember(projectId, request);
+
+        return ResponseEntity.ok("Member added successfully");
+    }
+
+    // -------------------------
+    // GET PROJECT (MEMBER ONLY)
+    // -------------------------
+    @GetMapping("/{projectId}")
+    public ResponseEntity<String> getProject(@PathVariable Long projectId) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (!accessService.isMember(project, getCurrentUser())) {
+            return ResponseEntity.status(403).body("Access denied");
+        }
+
+        return ResponseEntity.ok("Project access granted");
+    }
+}

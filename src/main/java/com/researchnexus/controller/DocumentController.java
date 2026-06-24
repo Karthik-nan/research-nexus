@@ -1,13 +1,14 @@
 package com.researchnexus.controller;
 
 import com.researchnexus.dto.DocumentResponse;
-import com.researchnexus.entity.ResearchDocument;
-import com.researchnexus.repository.ResearchDocumentRepository;
+import com.researchnexus.entity.Project;
+import com.researchnexus.entity.User;
+import com.researchnexus.repository.ProjectRepository;
+import com.researchnexus.repository.UserRepository;
 import com.researchnexus.service.DocumentService;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import com.researchnexus.service.ProjectAccessService;
+import org.springframework.http.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,59 +19,87 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService service;
-    private final ResearchDocumentRepository repository;
+    private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
+    private final ProjectAccessService accessService;
 
     public DocumentController(DocumentService service,
-                              ResearchDocumentRepository repository) {
+                              ProjectRepository projectRepository,
+                              UserRepository userRepository,
+                              ProjectAccessService accessService) {
         this.service = service;
-        this.repository = repository;
+        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+        this.accessService = accessService;
     }
 
-    // =========================
-    // UPLOAD
-    // =========================
+    // -------------------------
+    // GET CURRENT USER
+    // -------------------------
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // -------------------------
+    // UPLOAD (MEMBER ONLY)
+    // -------------------------
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DocumentResponse> upload(
+    public ResponseEntity<?> upload(
             @RequestParam String title,
             @RequestParam String description,
-            @RequestParam MultipartFile file
+            @RequestParam MultipartFile file,
+            @RequestParam Long projectId
     ) {
+
+        User user = getCurrentUser();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // 🔐 RBAC CHECK
+        if (!accessService.isMember(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You are not a project member");
+        }
+
         return ResponseEntity.ok(
-                service.uploadDocument(title, description, file)
+                service.uploadDocument(title, description, file, projectId)
         );
     }
 
-    // =========================
+    // -------------------------
     // GET ALL
-    // =========================
+    // -------------------------
     @GetMapping
-    public ResponseEntity<List<DocumentResponse>> getAllDocuments() {
+    public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(service.getAllDocuments());
     }
 
-    // =========================
-    // DOWNLOAD (FIXED)
-    // =========================
+    // -------------------------
+    // DOWNLOAD (OWNER OR MEMBER)
+    // -------------------------
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> download(@PathVariable Long id) {
 
-        byte[] fileData = service.downloadDocument(id);
+        User user = getCurrentUser();
 
-        ResearchDocument doc = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+        byte[] data = service.downloadDocument(id);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + doc.getFileName() + "\"")
-                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
-                .body(fileData);
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment")
+                .body(data);
     }
 
+    // -------------------------
+    // DELETE (OWNER ONLY INSIDE SERVICE)
+    // -------------------------
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteDocument(@PathVariable Long id) {
+    public ResponseEntity<String> delete(@PathVariable Long id) {
 
         service.deleteDocument(id);
 
-        return ResponseEntity.ok("Document deleted successfully");
+        return ResponseEntity.ok("Deleted");
     }
 }

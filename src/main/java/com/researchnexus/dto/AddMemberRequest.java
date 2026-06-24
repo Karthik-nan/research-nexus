@@ -1,11 +1,11 @@
 package com.researchnexus.dto;
 
-import com.researchnexus.entity.ProjectMember;
+import com.researchnexus.entity.ProjectRole;
 
 public class AddMemberRequest {
 
     private Long userId;
-    private ProjectMember.Role role;
+    private ProjectRole role;
 
     public Long getUserId() {
         return userId;
@@ -15,11 +15,11 @@ public class AddMemberRequest {
         this.userId = userId;
     }
 
-    public ProjectMember.Role getRole() {
+    public ProjectRole getRole() {
         return role;
     }
 
-    public void setRole(ProjectMember.Role role) {
+    public void setRole(ProjectRole role) {
         this.role = role;
     }
 }

@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "project_members")
 public class ProjectMember {
 
     @Id
@@ -22,11 +23,5 @@ public class ProjectMember {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
-
-    public enum Role {
-        OWNER,
-        EDITOR,
-        VIEWER
-    }
+    private ProjectRole role;
 }

@@ -4,6 +4,7 @@ import com.researchnexus.dto.AddMemberRequest;
 import com.researchnexus.dto.ProjectResponse;
 import com.researchnexus.entity.Project;
 import com.researchnexus.entity.ProjectMember;
+import com.researchnexus.entity.ProjectRole;
 import com.researchnexus.entity.User;
 import com.researchnexus.repository.ProjectMemberRepository;
 import com.researchnexus.repository.ProjectRepository;
@@ -31,6 +32,9 @@ public class ProjectServiceImpl implements ProjectService {
         this.projectMemberRepository = projectMemberRepository;
     }
 
+    // =========================
+    // GET CURRENT USER
+    // =========================
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
@@ -39,6 +43,9 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    // =========================
+    // CREATE PROJECT
+    // =========================
     @Override
     public ProjectResponse createProject(String name, String description) {
 
@@ -53,6 +60,15 @@ public class ProjectServiceImpl implements ProjectService {
 
         Project saved = projectRepository.save(project);
 
+        // OWNER is automatically added here
+        ProjectMember owner = ProjectMember.builder()
+                .project(saved)
+                .user(user)
+                .role(ProjectRole.OWNER)
+                .build();
+
+        projectMemberRepository.save(owner);
+
         return new ProjectResponse(
                 saved.getId(),
                 saved.getName(),
@@ -62,6 +78,9 @@ public class ProjectServiceImpl implements ProjectService {
         );
     }
 
+    // =========================
+    // GET ALL PROJECTS
+    // =========================
     @Override
     public List<ProjectResponse> getAllProjects() {
 
@@ -76,19 +95,49 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
     }
 
+    // =========================
+    // ADD MEMBER (FIXED LOGIC)
+    // =========================
     @Override
     public void addMember(Long projectId, AddMemberRequest request) {
+
+        User currentUser = getCurrentUser();
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
+        // STEP 1: validate current user is part of project
+        ProjectMember currentMembership = projectMemberRepository
+                .findByProjectAndUser(project, currentUser)
+                .orElseThrow(() -> new RuntimeException("You are not a member of this project"));
+
+        // STEP 2: ONLY OWNER can add members
+        if (currentMembership.getRole() != ProjectRole.OWNER) {
+            throw new RuntimeException("Only OWNER can add members");
+        }
+
+        // STEP 3: prevent multiple OWNERS
+        if (request.getRole() == ProjectRole.OWNER) {
+
+            boolean ownerExists = projectMemberRepository
+                    .findByProjectAndRole(project, ProjectRole.OWNER)
+                    .isPresent();
+
+            if (ownerExists) {
+                throw new RuntimeException("Project already has an OWNER");
+            }
+        }
+
+        // STEP 4: find target user
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // STEP 5: prevent duplicate membership
         if (projectMemberRepository.existsByProjectAndUser(project, user)) {
             throw new RuntimeException("User already added to project");
         }
 
+        // STEP 6: save member
         ProjectMember member = ProjectMember.builder()
                 .project(project)
                 .user(user)

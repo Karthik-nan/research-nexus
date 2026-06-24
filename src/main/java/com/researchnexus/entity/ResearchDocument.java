@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 @Table(name = "research_documents")
 public class ResearchDocument {
 
@@ -31,8 +30,13 @@ public class ResearchDocument {
 
     private LocalDateTime uploadedAt;
 
+    // ✅ OWNER (SECURITY + AUTHORIZATION)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
 
+    // ✅ PROJECT (RBAC SCOPE)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id")
+    private Project project;
 }
