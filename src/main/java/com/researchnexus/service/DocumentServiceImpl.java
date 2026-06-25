@@ -154,4 +154,21 @@ public class DocumentServiceImpl implements DocumentService {
             throw new RuntimeException("Delete failed");
         }
     }
+    @Override
+    public List<DocumentResponse> getProjectDocuments(Long projectId) {
+
+        return repository.findByProjectId(projectId)
+                .stream()
+                .map(doc -> new DocumentResponse(
+                        doc.getId(),
+                        doc.getTitle(),
+                        doc.getDescription(),
+                        doc.getFileName(),
+                        doc.getFilePath(),
+                        doc.getFileType(),
+                        doc.getUploadedAt(),
+                        doc.getUser().getName()
+                ))
+                .collect(Collectors.toList());
+    }
 }

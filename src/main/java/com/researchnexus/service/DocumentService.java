@@ -19,4 +19,6 @@ public interface DocumentService {
     byte[] downloadDocument(Long id);
 
     void deleteDocument(Long id);
+
+    List<DocumentResponse> getProjectDocuments(Long projectId);
 }

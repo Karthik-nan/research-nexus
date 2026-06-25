@@ -37,11 +37,24 @@ public class DocumentController {
     // GET CURRENT USER
     // -------------------------
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        System.out.println();
+        System.out.println("========== DEBUG ==========");
+        System.out.println("LOGGED USER EMAIL = " + user.getEmail());
+        System.out.println("LOGGED USER ID = " + user.getId());
+        System.out.println("===========================");
+        System.out.println();
+
+        return user;
+    }
     // -------------------------
     // UPLOAD (MEMBER ONLY)
     // -------------------------
@@ -101,5 +114,31 @@ public class DocumentController {
         service.deleteDocument(id);
 
         return ResponseEntity.ok("Deleted");
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<?> getProjectDocuments(
+            @PathVariable Long projectId
+    ) {
+
+        User user = getCurrentUser();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        boolean allowed = accessService.isMember(project, user);
+
+        System.out.println("IS MEMBER = " + allowed);
+
+        if (!allowed) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("You are not a project member");
+        }
+
+        return ResponseEntity.ok(
+                service.getProjectDocuments(projectId)
+        );
     }
 }

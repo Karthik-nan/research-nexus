@@ -9,6 +9,7 @@ public interface ResearchDocumentRepository
         extends JpaRepository<ResearchDocument, Long> {
     List<ResearchDocument> findByUserEmail(String email);
     List<ResearchDocument> findByUserId(Long userId);
+    List<ResearchDocument> findByProjectId(Long projectId);
 
 
 }
