@@ -172,4 +172,30 @@ public class ProjectServiceImpl implements ProjectService {
                 ))
                 .toList();
     }
+
+    @Override
+    public void removeMember(Long projectId, Long userId) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        ProjectMember target =
+                projectMemberRepository
+                        .findByProjectAndUser(project, targetUser)
+                        .orElseThrow(() ->
+                                new RuntimeException("Member not found"));
+
+        if (target.getRole() == ProjectRole.OWNER) {
+            throw new RuntimeException(
+                    "OWNER cannot be removed"
+            );
+        }
+
+        projectMemberRepository.delete(target);
+    }
 }

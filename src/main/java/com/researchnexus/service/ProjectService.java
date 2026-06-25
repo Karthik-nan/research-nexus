@@ -13,4 +13,5 @@ public interface ProjectService {
     List<ProjectResponse> getAllProjects();
     void addMember(Long projectId, AddMemberRequest request);
     List<ProjectMemberResponse> getMembers(Long projectId);
+    void removeMember(Long projectId, Long userId);
 }

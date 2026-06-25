@@ -104,4 +104,26 @@ public class ProjectController {
                 projectService.getMembers(projectId)
         );
     }
+    @DeleteMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<String> removeMember(
+            @PathVariable Long projectId,
+            @PathVariable Long userId
+    ) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        if (!accessService.isOwner(project, getCurrentUser())) {
+            return ResponseEntity
+                    .status(403)
+                    .body("Only OWNER can remove members");
+        }
+
+        projectService.removeMember(projectId, userId);
+
+        return ResponseEntity.ok(
+                "Member removed successfully"
+        );
+    }
 }
