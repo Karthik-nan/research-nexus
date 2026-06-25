@@ -1,6 +1,7 @@
 package com.researchnexus.controller;
 
 import com.researchnexus.dto.AddMemberRequest;
+import com.researchnexus.dto.ProjectMemberResponse;
 import com.researchnexus.dto.ProjectResponse;
 import com.researchnexus.entity.Project;
 import com.researchnexus.entity.User;
@@ -94,5 +95,13 @@ public class ProjectController {
         }
 
         return ResponseEntity.ok("Project access granted");
+    }
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity<List<ProjectMemberResponse>>
+    getMembers(@PathVariable Long projectId) {
+
+        return ResponseEntity.ok(
+                projectService.getMembers(projectId)
+        );
     }
 }

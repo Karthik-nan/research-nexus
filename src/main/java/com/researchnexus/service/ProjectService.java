@@ -1,6 +1,7 @@
 package com.researchnexus.service;
 
 import com.researchnexus.dto.AddMemberRequest;
+import com.researchnexus.dto.ProjectMemberResponse;
 import com.researchnexus.dto.ProjectResponse;
 
 import java.util.List;
@@ -11,4 +12,5 @@ public interface ProjectService {
 
     List<ProjectResponse> getAllProjects();
     void addMember(Long projectId, AddMemberRequest request);
+    List<ProjectMemberResponse> getMembers(Long projectId);
 }

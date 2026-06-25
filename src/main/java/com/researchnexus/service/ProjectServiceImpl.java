@@ -1,6 +1,7 @@
 package com.researchnexus.service;
 
 import com.researchnexus.dto.AddMemberRequest;
+import com.researchnexus.dto.ProjectMemberResponse;
 import com.researchnexus.dto.ProjectResponse;
 import com.researchnexus.entity.Project;
 import com.researchnexus.entity.ProjectMember;
@@ -145,5 +146,30 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
 
         projectMemberRepository.save(member);
+    }
+    @Override
+    public List<ProjectMemberResponse> getMembers(Long projectId) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        User currentUser = getCurrentUser();
+
+        boolean isMember = projectMemberRepository
+                .existsByProjectAndUser(project, currentUser);
+
+        if (!isMember) {
+            throw new RuntimeException("Access denied");
+        }
+
+        return projectMemberRepository
+                .findByProjectId(projectId)
+                .stream()
+                .map(member -> new ProjectMemberResponse(
+                        member.getUser().getId(),
+                        member.getUser().getEmail(),
+                        member.getRole()
+                ))
+                .toList();
     }
 }
