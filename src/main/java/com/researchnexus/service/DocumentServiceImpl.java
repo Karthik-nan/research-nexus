@@ -129,16 +129,30 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public byte[] downloadDocument(Long id) {
+
         try {
 
             ResearchDocument doc = repository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Not found"));
+                    .orElseThrow(() -> new RuntimeException("Document not found"));
 
-            return Files.readAllBytes(Paths.get(doc.getFilePath()));
+            System.out.println("FILE PATH = " + doc.getFilePath());
+
+            Path path = Paths.get(doc.getFilePath());
+
+            System.out.println("ABSOLUTE PATH = " + path.toAbsolutePath());
+
+            System.out.println("FILE EXISTS = " + Files.exists(path));
+
+            return Files.readAllBytes(path);
 
         } catch (Exception e) {
-            throw new RuntimeException("Download failed");
+
+            e.printStackTrace();
+
+            throw new RuntimeException("Download failed: " + e.getMessage());
+
         }
+
     }
 
     @Override

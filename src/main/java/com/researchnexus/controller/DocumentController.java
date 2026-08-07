@@ -96,6 +96,7 @@ public class DocumentController {
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> download(@PathVariable Long id) {
 
+        System.out.println("DOWNLOAD API HIT");
         User user = getCurrentUser();
 
         byte[] data = service.downloadDocument(id);

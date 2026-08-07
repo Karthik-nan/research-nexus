@@ -1,5 +1,6 @@
 package com.researchnexus.dto;
 
+import com.researchnexus.entity.ProjectRole;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,4 +16,6 @@ public class ProjectResponse {
     private String description;
     private LocalDateTime createdAt;
     private String createdBy;
+    private ProjectRole myRole;
+
 }
