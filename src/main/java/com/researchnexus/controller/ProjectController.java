@@ -12,6 +12,7 @@ import com.researchnexus.service.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import com.researchnexus.dto.UpdateProjectRequest;
 
 import java.util.List;
 
@@ -153,5 +154,63 @@ public class ProjectController {
         projectService.removeMember(projectId, userId);
 
         return ResponseEntity.ok("Member removed successfully");
+    }
+
+    // ==========================
+// DELETE PROJECT (OWNER ONLY)
+// ==========================
+
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<String> deleteProject(
+            @PathVariable Long projectId
+    ) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found")
+                );
+
+        if (!accessService.isOwner(project, getCurrentUser())) {
+            return ResponseEntity.status(403)
+                    .body("Only OWNER can delete the project");
+        }
+
+        projectService.deleteProject(projectId);
+
+        return ResponseEntity.ok(
+                "Project deleted successfully"
+        );
+
+    }
+
+    // ==========================
+// EDIT PROJECT (OWNER ONLY)
+// ==========================
+    @PutMapping("/{projectId}")
+    public ResponseEntity<ProjectResponse> updateProject(
+            @PathVariable Long projectId,
+            @RequestBody UpdateProjectRequest request
+    ) {
+
+        System.out.println("========== UPDATE PROJECT ==========");
+        System.out.println("Project ID: " + projectId);
+        System.out.println("Name: " + request.getName());
+        System.out.println("Description: " + request.getDescription());
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found"));
+
+        if (!accessService.isOwner(project, getCurrentUser())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(
+                projectService.updateProject(
+                        projectId,
+                        request.getName(),
+                        request.getDescription()
+                )
+        );
     }
 }
