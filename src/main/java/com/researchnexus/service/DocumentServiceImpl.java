@@ -4,15 +4,21 @@ import com.researchnexus.dto.DocumentResponse;
 import com.researchnexus.entity.Project;
 import com.researchnexus.entity.ResearchDocument;
 import com.researchnexus.entity.User;
+import com.researchnexus.exception.ResourceNotFoundException;
+import com.researchnexus.exception.UnauthorisedException;
 import com.researchnexus.repository.ProjectRepository;
 import com.researchnexus.repository.ResearchDocumentRepository;
 import com.researchnexus.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,10 +29,10 @@ public class DocumentServiceImpl implements DocumentService {
     private final ResearchDocumentRepository repository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
-
     private final ProjectAccessService projectAccessService;
 
-    private final String uploadDir = "uploads";
+    private final String uploadDir =
+            "C:/projects/research-nexus/uploads";
 
     public DocumentServiceImpl(
             ResearchDocumentRepository repository,
@@ -41,18 +47,35 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     private String getEmail() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getName();
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        return authentication.getName();
     }
 
     private User getUser() {
-        return userRepository.findByEmail(getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository
+                .findByEmail(getEmail())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        ));
     }
 
-    // =========================
-    // UPLOAD (PROJECT RBAC HERE)
-    // =========================
+    private Path resolveFilePath(String filePath) {
+
+        Path path = Paths.get(filePath);
+
+        if (path.isAbsolute()) {
+            return path;
+        }
+
+        return Paths.get(uploadDir)
+                .resolve(path.getFileName().toString());
+    }
+
     @Override
     public DocumentResponse uploadDocument(
             String title,
@@ -60,129 +83,257 @@ public class DocumentServiceImpl implements DocumentService {
             MultipartFile file,
             Long projectId
     ) {
+
+        User user = getUser();
+
+        Project project =
+                projectRepository
+                        .findById(projectId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Project not found"
+                                ));
+
+        if (!projectAccessService.isMember(project, user)) {
+            throw new UnauthorisedException(
+                    "You are not a member of this project"
+            );
+        }
+
         try {
 
-            User user = getUser();
+            Path uploadPath =
+                    Paths.get(uploadDir);
 
-            Project project = projectRepository.findById(projectId)
-                    .orElseThrow(() -> new RuntimeException("Project not found"));
-
-            // 🔐 RBAC CHECK
-            if (!projectAccessService.isMember(project, user)) {
-                throw new RuntimeException("Not a project member");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
             }
 
-            Path folder = Paths.get(uploadDir);
-            if (!Files.exists(folder)) {
-                Files.createDirectories(folder);
+            String originalFileName =
+                    file.getOriginalFilename();
+
+            if (originalFileName == null ||
+                    originalFileName.isBlank()) {
+
+                throw new RuntimeException(
+                        "Invalid file name"
+                );
             }
 
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path filePath = folder.resolve(fileName);
+            String fileName =
+                    System.currentTimeMillis()
+                            + "_"
+                            + originalFileName;
 
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            Path filePath =
+                    uploadPath.resolve(fileName);
 
-            ResearchDocument doc = ResearchDocument.builder()
-                    .title(title)
-                    .description(description)
-                    .fileName(fileName)
-                    .filePath(filePath.toString())
-                    .fileType(file.getContentType())
-                    .uploadedAt(LocalDateTime.now())
-                    .user(user)
-                    .project(project)
-                    .build();
+            Files.copy(
+                    file.getInputStream(),
+                    filePath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
 
-            ResearchDocument saved = repository.save(doc);
+            ResearchDocument document =
+                    ResearchDocument.builder()
+                            .title(title)
+                            .description(description)
+                            .fileName(fileName)
+                            .filePath("uploads/" + fileName)
+                            .fileType(file.getContentType())
+                            .uploadedAt(LocalDateTime.now())
+                            .user(user)
+                            .project(project)
+                            .build();
+
+            ResearchDocument savedDocument =
+                    repository.save(document);
 
             return new DocumentResponse(
-                    saved.getId(),
-                    saved.getTitle(),
-                    saved.getDescription(),
-                    saved.getFileName(),
-                    saved.getFilePath(),
-                    saved.getFileType(),
-                    saved.getUploadedAt(),
+                    savedDocument.getId(),
+                    savedDocument.getTitle(),
+                    savedDocument.getDescription(),
+                    savedDocument.getFileName(),
+                    savedDocument.getFilePath(),
+                    savedDocument.getFileType(),
+                    savedDocument.getUploadedAt(),
                     user.getName()
             );
 
         } catch (Exception e) {
-            throw new RuntimeException("Upload failed: " + e.getMessage());
+
+            throw new RuntimeException(
+                    "Upload failed: " + e.getMessage(),
+                    e
+            );
         }
     }
 
     @Override
     public List<DocumentResponse> getAllDocuments() {
-        return repository.findAll().stream()
-                .map(doc -> new DocumentResponse(
-                        doc.getId(),
-                        doc.getTitle(),
-                        doc.getDescription(),
-                        doc.getFileName(),
-                        doc.getFilePath(),
-                        doc.getFileType(),
-                        doc.getUploadedAt(),
-                        doc.getUser().getName()
-                ))
+
+        return repository
+                .findAll()
+                .stream()
+                .map(document ->
+                        new DocumentResponse(
+                                document.getId(),
+                                document.getTitle(),
+                                document.getDescription(),
+                                document.getFileName(),
+                                document.getFilePath(),
+                                document.getFileType(),
+                                document.getUploadedAt(),
+                                document.getUser().getName()
+                        )
+                )
                 .collect(Collectors.toList());
     }
 
     @Override
     public byte[] downloadDocument(Long id) {
 
+        ResearchDocument document =
+                repository
+                        .findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Document not found"
+                                ));
+
+        Path filePath =
+                resolveFilePath(
+                        document.getFilePath()
+                );
+
+        System.out.println(
+                "Database path: "
+                        + document.getFilePath()
+        );
+
+        System.out.println(
+                "Physical path: "
+                        + filePath
+        );
+
+        System.out.println(
+                "File exists: "
+                        + Files.exists(filePath)
+        );
+
+        if (!Files.exists(filePath)) {
+
+            throw new ResourceNotFoundException(
+                    "Physical file not found: "
+                            + filePath
+            );
+        }
+
         try {
 
-            ResearchDocument doc = repository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Document not found"));
-
-            System.out.println("FILE PATH = " + doc.getFilePath());
-
-            Path path = Paths.get(doc.getFilePath());
-
-            System.out.println("ABSOLUTE PATH = " + path.toAbsolutePath());
-
-            System.out.println("FILE EXISTS = " + Files.exists(path));
-
-            return Files.readAllBytes(path);
+            return Files.readAllBytes(filePath);
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
-            throw new RuntimeException("Download failed: " + e.getMessage());
-
+            throw new RuntimeException(
+                    "Download failed: "
+                            + e.getMessage(),
+                    e
+            );
         }
-
     }
 
     @Override
+    @Transactional
     public void deleteDocument(Long id) {
 
-        ResearchDocument doc = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Not found"));
+        User currentUser = getUser();
+
+        ResearchDocument document =
+                repository
+                        .findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Document not found"
+                                ));
+
+        Project project =
+                document.getProject();
+
+        if (project == null) {
+
+            throw new ResourceNotFoundException(
+                    "Document is not associated with a project"
+            );
+        }
+
+        boolean isOwner =
+                projectAccessService.isOwner(
+                        project,
+                        currentUser
+                );
+
+        if (!isOwner) {
+
+            throw new UnauthorisedException(
+                    "Only the project owner can delete documents"
+            );
+        }
+
+        Path filePath =
+                resolveFilePath(
+                        document.getFilePath()
+                );
+
+        repository.delete(document);
+
+        repository.flush();
 
         try {
-            Files.deleteIfExists(Paths.get(doc.getFilePath()));
-            repository.delete(doc);
+
+            Files.deleteIfExists(filePath);
+
         } catch (Exception e) {
-            throw new RuntimeException("Delete failed");
+
+            System.err.println(
+                    "Could not delete physical file: "
+                            + filePath
+            );
+
+            System.err.println(
+                    "Reason: "
+                            + e.getMessage()
+            );
         }
     }
-    @Override
-    public List<DocumentResponse> getProjectDocuments(Long projectId) {
 
-        return repository.findByProjectId(projectId)
+    @Override
+    public List<DocumentResponse> getProjectDocuments(
+            Long projectId
+    ) {
+
+        projectRepository
+                .findById(projectId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Project not found"
+                        ));
+
+        return repository
+                .findByProjectId(projectId)
                 .stream()
-                .map(doc -> new DocumentResponse(
-                        doc.getId(),
-                        doc.getTitle(),
-                        doc.getDescription(),
-                        doc.getFileName(),
-                        doc.getFilePath(),
-                        doc.getFileType(),
-                        doc.getUploadedAt(),
-                        doc.getUser().getName()
-                ))
+                .map(document ->
+                        new DocumentResponse(
+                                document.getId(),
+                                document.getTitle(),
+                                document.getDescription(),
+                                document.getFileName(),
+                                document.getFilePath(),
+                                document.getFileType(),
+                                document.getUploadedAt(),
+                                document.getUser().getName()
+                        )
+                )
                 .collect(Collectors.toList());
     }
 }

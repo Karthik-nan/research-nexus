@@ -103,6 +103,7 @@ public class DocumentController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment")
+                .contentType(MediaType.APPLICATION_PDF)
                 .body(data);
     }
 
