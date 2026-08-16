@@ -30,6 +30,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final ProjectAccessService projectAccessService;
+    private final ActivityService activityService;
 
     private final String uploadDir =
             "C:/projects/research-nexus/uploads";
@@ -38,15 +39,22 @@ public class DocumentServiceImpl implements DocumentService {
             ResearchDocumentRepository repository,
             UserRepository userRepository,
             ProjectRepository projectRepository,
-            ProjectAccessService projectAccessService
+            ProjectAccessService projectAccessService,
+            ActivityService activityService
     ) {
         this.repository = repository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.projectAccessService = projectAccessService;
+        this.activityService = activityService;
     }
 
+    // =========================
+    // GET CURRENT USER EMAIL
+    // =========================
+
     private String getEmail() {
+
         Authentication authentication =
                 SecurityContextHolder
                         .getContext()
@@ -55,7 +63,12 @@ public class DocumentServiceImpl implements DocumentService {
         return authentication.getName();
     }
 
+    // =========================
+    // GET CURRENT USER
+    // =========================
+
     private User getUser() {
+
         return userRepository
                 .findByEmail(getEmail())
                 .orElseThrow(() ->
@@ -63,6 +76,10 @@ public class DocumentServiceImpl implements DocumentService {
                                 "User not found"
                         ));
     }
+
+    // =========================
+    // RESOLVE FILE PATH
+    // =========================
 
     private Path resolveFilePath(String filePath) {
 
@@ -75,6 +92,10 @@ public class DocumentServiceImpl implements DocumentService {
         return Paths.get(uploadDir)
                 .resolve(path.getFileName().toString());
     }
+
+    // =========================
+    // UPLOAD DOCUMENT
+    // =========================
 
     @Override
     public DocumentResponse uploadDocument(
@@ -94,7 +115,9 @@ public class DocumentServiceImpl implements DocumentService {
                                         "Project not found"
                                 ));
 
+        // Check project membership
         if (!projectAccessService.isMember(project, user)) {
+
             throw new UnauthorisedException(
                     "You are not a member of this project"
             );
@@ -102,12 +125,16 @@ public class DocumentServiceImpl implements DocumentService {
 
         try {
 
+            // Create upload directory if it doesn't exist
+
             Path uploadPath =
                     Paths.get(uploadDir);
 
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
+
+            // Get original filename
 
             String originalFileName =
                     file.getOriginalFilename();
@@ -120,6 +147,8 @@ public class DocumentServiceImpl implements DocumentService {
                 );
             }
 
+            // Create unique filename
+
             String fileName =
                     System.currentTimeMillis()
                             + "_"
@@ -128,11 +157,15 @@ public class DocumentServiceImpl implements DocumentService {
             Path filePath =
                     uploadPath.resolve(fileName);
 
+            // Save physical file
+
             Files.copy(
                     file.getInputStream(),
                     filePath,
                     StandardCopyOption.REPLACE_EXISTING
             );
+
+            // Create document entity
 
             ResearchDocument document =
                     ResearchDocument.builder()
@@ -146,8 +179,23 @@ public class DocumentServiceImpl implements DocumentService {
                             .project(project)
                             .build();
 
+            // Save document
+
             ResearchDocument savedDocument =
                     repository.save(document);
+
+            // Create activity
+
+            activityService.createActivity(
+                    "DOCUMENT_UPLOADED",
+                    "Document '"
+                            + savedDocument.getFileName()
+                            + "' was uploaded",
+                    user,
+                    project
+            );
+
+            // Return response
 
             return new DocumentResponse(
                     savedDocument.getId(),
@@ -163,11 +211,16 @@ public class DocumentServiceImpl implements DocumentService {
         } catch (Exception e) {
 
             throw new RuntimeException(
-                    "Upload failed: " + e.getMessage(),
+                    "Upload failed: "
+                            + e.getMessage(),
                     e
             );
         }
     }
+
+    // =========================
+    // GET ALL DOCUMENTS
+    // =========================
 
     @Override
     public List<DocumentResponse> getAllDocuments() {
@@ -189,6 +242,10 @@ public class DocumentServiceImpl implements DocumentService {
                 )
                 .collect(Collectors.toList());
     }
+
+    // =========================
+    // DOWNLOAD DOCUMENT
+    // =========================
 
     @Override
     public byte[] downloadDocument(Long id) {
@@ -243,6 +300,10 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
+    // =========================
+    // DELETE DOCUMENT
+    // =========================
+
     @Override
     @Transactional
     public void deleteDocument(Long id) {
@@ -267,6 +328,8 @@ public class DocumentServiceImpl implements DocumentService {
             );
         }
 
+        // Only OWNER can delete
+
         boolean isOwner =
                 projectAccessService.isOwner(
                         project,
@@ -280,14 +343,23 @@ public class DocumentServiceImpl implements DocumentService {
             );
         }
 
+        // Save filename before deleting
+
+        String fileName =
+                document.getFileName();
+
         Path filePath =
                 resolveFilePath(
                         document.getFilePath()
                 );
 
+        // Delete database record
+
         repository.delete(document);
 
         repository.flush();
+
+        // Delete physical file
 
         try {
 
@@ -305,7 +377,22 @@ public class DocumentServiceImpl implements DocumentService {
                             + e.getMessage()
             );
         }
+
+        // Create activity
+
+        activityService.createActivity(
+                "DOCUMENT_DELETED",
+                "Document '"
+                        + fileName
+                        + "' was deleted",
+                currentUser,
+                project
+        );
     }
+
+    // =========================
+    // GET PROJECT DOCUMENTS
+    // =========================
 
     @Override
     public List<DocumentResponse> getProjectDocuments(

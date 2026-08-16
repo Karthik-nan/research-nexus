@@ -213,4 +213,32 @@ public class ProjectController {
                 )
         );
     }
+
+    // ==========================
+// SEARCH PROJECTS
+// ==========================
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProjectResponse>> searchProjects(
+            @RequestParam String keyword
+    ) {
+
+        List<ProjectResponse> projects = projectRepository
+                .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                        keyword,
+                        keyword
+                )
+                .stream()
+                .map(project -> new ProjectResponse(
+                        project.getId(),
+                        project.getName(),
+                        project.getDescription(),
+                        project.getCreatedAt(),
+                        project.getCreatedBy().getName(),
+                        null
+                ))
+                .toList();
+
+        return ResponseEntity.ok(projects);
+    }
 }

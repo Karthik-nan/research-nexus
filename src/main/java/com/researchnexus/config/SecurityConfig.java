@@ -10,92 +10,67 @@ import org.springframework.http.HttpMethod;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-
 import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import org.springframework.security.web.SecurityFilterChain;
-
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-
 @Configuration
 public class SecurityConfig {
 
-
     private final CustomUserDetailsService userDetailsService;
-
     private final JwtFilter jwtFilter;
-
     private final PasswordEncoder passwordEncoder;
-
-
 
     public SecurityConfig(
             CustomUserDetailsService userDetailsService,
             JwtFilter jwtFilter,
             PasswordEncoder passwordEncoder
     ) {
-
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
         this.passwordEncoder = passwordEncoder;
-
     }
 
-
-
-    // =========================
-    // SECURITY FILTER CHAIN
-    // =========================
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
         http
-
-                // Enable CORS
+                // CORS
                 .cors(Customizer.withDefaults())
 
-
-                // Disable CSRF for REST APIs
+                // REST API - disable CSRF
                 .csrf(csrf -> csrf.disable())
 
-
-                // JWT based authentication
+                // JWT - no session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-
+                // Authentication provider
                 .authenticationProvider(authenticationProvider())
 
-
+                // Authorization
                 .authorizeHttpRequests(auth -> auth
 
-
-                        // Allow browser preflight requests
+                        // CORS preflight
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
-
 
                         // Public APIs
                         .requestMatchers(
@@ -103,111 +78,69 @@ public class SecurityConfig {
                                 "/api/users/register"
                         ).permitAll()
 
-
-
                         // Protected APIs
-                        .requestMatchers(
-                                "/api/documents/**"
-                        ).authenticated()
-
-
                         .requestMatchers(
                                 "/api/projects/**"
                         ).authenticated()
 
+                        .requestMatchers(
+                                "/api/documents/**"
+                        ).authenticated()
 
+                        .requestMatchers(
+                                "/api/activities/**"
+                        ).authenticated()
 
                         // Everything else
                         .anyRequest().authenticated()
-
                 )
 
-
-
-                // JWT Filter
+                // JWT filter
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
 
-
-
         return http.build();
-
     }
-
-
-
-
-
-    // =========================
-    // AUTHENTICATION PROVIDER
-    // =========================
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
 
-
         DaoAuthenticationProvider provider =
                 new DaoAuthenticationProvider();
-
 
         provider.setUserDetailsService(
                 userDetailsService
         );
 
-
         provider.setPasswordEncoder(
                 passwordEncoder
         );
 
-
         return provider;
-
     }
-
-
-
-
-
-    // =========================
-    // AUTHENTICATION MANAGER
-    // =========================
 
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config
     ) throws Exception {
 
-
         return config.getAuthenticationManager();
-
     }
-
-
-
-
-
-    // =========================
-    // CORS CONFIGURATION
-    // =========================
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-
-
         configuration.setAllowedOrigins(
                 List.of(
-                        "http://localhost:5173"
+                        "http://localhost:5173",
+                        "http://localhost:5174"
                 )
         );
-
-
 
         configuration.setAllowedMethods(
                 List.of(
@@ -219,32 +152,20 @@ public class SecurityConfig {
                 )
         );
 
-
-
         configuration.setAllowedHeaders(
                 List.of("*")
         );
 
-
-
         configuration.setAllowCredentials(true);
-
-
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
-
-
 
         source.registerCorsConfiguration(
                 "/**",
                 configuration
         );
 
-
-
         return source;
-
     }
-
 }

@@ -30,6 +30,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final ResearchDocumentRepository researchDocumentRepository;
+    private final ActivityService activityService;
 
     private final String uploadDir =
             "C:/projects/research-nexus/uploads";
@@ -38,12 +39,14 @@ public class ProjectServiceImpl implements ProjectService {
             ProjectRepository projectRepository,
             UserRepository userRepository,
             ProjectMemberRepository projectMemberRepository,
-            ResearchDocumentRepository researchDocumentRepository
+            ResearchDocumentRepository researchDocumentRepository,
+            ActivityService activityService
     ) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.researchDocumentRepository = researchDocumentRepository;
+        this.activityService = activityService;
     }
 
     // =========================
@@ -93,6 +96,14 @@ public class ProjectServiceImpl implements ProjectService {
                         .build();
 
         projectMemberRepository.save(owner);
+
+        // Activity
+        activityService.createActivity(
+                "PROJECT_CREATED",
+                "Project '" + saved.getName() + "' was created",
+                user,
+                saved
+        );
 
         return new ProjectResponse(
                 saved.getId(),
@@ -248,6 +259,15 @@ public class ProjectServiceImpl implements ProjectService {
                         .build();
 
         projectMemberRepository.save(member);
+
+        // Activity
+        activityService.createActivity(
+                "MEMBER_ADDED",
+                "User '" + user.getName()
+                        + "' was added to the project",
+                currentUser,
+                project
+        );
     }
 
     // =========================
@@ -320,6 +340,8 @@ public class ProjectServiceImpl implements ProjectService {
             Long userId
     ) {
 
+        User currentUser = getCurrentUser();
+
         Project project =
                 projectRepository
                         .findById(projectId)
@@ -327,6 +349,25 @@ public class ProjectServiceImpl implements ProjectService {
                                 new RuntimeException(
                                         "Project not found"
                                 ));
+
+        ProjectMember currentMembership =
+                projectMemberRepository
+                        .findByProjectAndUser(
+                                project,
+                                currentUser
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "You are not a member of this project"
+                                ));
+
+        if (currentMembership.getRole()
+                != ProjectRole.OWNER) {
+
+            throw new RuntimeException(
+                    "Only OWNER can remove members"
+            );
+        }
 
         User user =
                 userRepository
@@ -356,6 +397,15 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         projectMemberRepository.delete(member);
+
+        // Activity
+        activityService.createActivity(
+                "MEMBER_REMOVED",
+                "User '" + user.getName()
+                        + "' was removed from the project",
+                currentUser,
+                project
+        );
     }
 
     // =========================
@@ -429,6 +479,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
 
+
         researchDocumentRepository.deleteAll(documents);
 
         projectMemberRepository.deleteAll(
@@ -484,6 +535,15 @@ public class ProjectServiceImpl implements ProjectService {
 
         Project updatedProject =
                 projectRepository.save(project);
+
+        // Activity
+        activityService.createActivity(
+                "PROJECT_UPDATED",
+                "Project '" + updatedProject.getName()
+                        + "' was updated",
+                currentUser,
+                updatedProject
+        );
 
         return new ProjectResponse(
                 updatedProject.getId(),
