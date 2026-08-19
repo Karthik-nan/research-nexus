@@ -16,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,6 +73,10 @@ public class ProjectServiceImpl implements ProjectService {
     // =========================
 
     @Override
+    @CacheEvict(
+            value="myProjects",
+            allEntries = true
+    )
     public ProjectResponse createProject(
             String name,
             String description
@@ -120,6 +126,8 @@ public class ProjectServiceImpl implements ProjectService {
     // =========================
 
     @Override
+    @Cacheable(value = "myProjects",
+                key="#user.id")
     public List<ProjectResponse> getMyProjects(User user) {
 
         return projectMemberRepository
