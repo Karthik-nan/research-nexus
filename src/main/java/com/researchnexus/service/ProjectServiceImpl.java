@@ -343,6 +343,10 @@ public class ProjectServiceImpl implements ProjectService {
     // =========================
 
     @Override
+    @CacheEvict(
+            value = "myProjects",
+            allEntries = true
+    )
     public void removeMember(
             Long projectId,
             Long userId
@@ -422,6 +426,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+    @CacheEvict(
+            value = "myProjects",
+            allEntries = true
+    )
     public void deleteProject(Long projectId) {
 
         User currentUser = getCurrentUser();
@@ -503,6 +511,10 @@ public class ProjectServiceImpl implements ProjectService {
     // =========================
 
     @Override
+    @CacheEvict(
+            value = "myProjects",
+            allEntries = true
+    )
     public ProjectResponse updateProject(
             Long projectId,
             String name,

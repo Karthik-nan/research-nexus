@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -38,9 +37,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        return request.getMethod().equals("OPTIONS")
-                || path.startsWith("/api/users/login")
-                || path.startsWith("/api/users/register");
+        return request.getMethod().equalsIgnoreCase("OPTIONS")
+                || path.equals("/api/users/login")
+                || path.equals("/api/users/register");
     }
 
     @Override
@@ -50,10 +49,19 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+
+
         String authHeader = request.getHeader("Authorization");
+
+        System.out.println(
+                "Authorization header present: " +
+                        (authHeader != null)
+        );
 
         if (authHeader == null ||
                 !authHeader.startsWith("Bearer ")) {
+
+            System.out.println("JWT NOT FOUND");
 
             filterChain.doFilter(request, response);
             return;
@@ -65,6 +73,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String email = jwtUtil.extractEmail(token);
 
+            System.out.println(
+                    "JWT email: " + email
+            );
+
             if (email != null &&
                     SecurityContextHolder
                             .getContext()
@@ -73,7 +85,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(email);
 
-                if (jwtUtil.validateToken(token, email)) {
+                boolean valid =
+                        jwtUtil.validateToken(token, email);
+
+                System.out.println(
+                        "JWT valid: " + valid
+                );
+
+                if (valid) {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -90,12 +109,41 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(authentication);
+
+                    System.out.println(
+                            "AUTHENTICATION SET: " +
+                                    userDetails.getUsername()
+                    );
+
+                    System.out.println(
+                            "AUTHORITIES: " +
+                                    userDetails.getAuthorities()
+                    );
                 }
             }
 
         } catch (Exception e) {
+
+            System.out.println(
+                    "JWT ERROR: " +
+                            e.getClass().getSimpleName() +
+                            " - " +
+                            e.getMessage()
+            );
+
             SecurityContextHolder.clearContext();
         }
+
+        System.out.println(
+                "FINAL AUTHENTICATION: " +
+                        SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+        );
+
+        System.out.println(
+                "================================"
+        );
 
         filterChain.doFilter(request, response);
     }
