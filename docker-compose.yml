@@ -5,12 +5,11 @@ services:
     expose:
       - "8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/research_nexus
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/research_nexus
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 1906
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
+      - mysql
       - redis
 
   research-nexus-2:
@@ -18,19 +17,26 @@ services:
     expose:
       - "8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/research_nexus
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/research_nexus
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 1906
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
+      - mysql
       - redis
+
+  mysql:
+    image: mysql:8.0
+    container_name: research-nexus-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: research_nexus
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   redis:
     image: redis:latest
     container_name: research-nexus-redis
-    ports:
-      - "6379:6379"
+
   nginx:
     image: nginx:latest
     ports:
@@ -40,3 +46,6 @@ services:
     depends_on:
       - research-nexus-1
       - research-nexus-2
+
+volumes:
+  mysql_data:

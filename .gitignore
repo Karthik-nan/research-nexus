@@ -38,3 +38,7 @@ Thumbs.db
 
 # Upload folder (project specific)
 uploads/
+
+
+# Environment variables
+.env
