@@ -1,1326 +1,728 @@
-\# Research Nexus
+# 🚀 Research Nexus
 
+<p align="center">
 
+## Scalable Collaborative Research Platform
 
-\## Scalable Collaborative Research Platform
+**Research Nexus** is a full-stack collaborative research platform designed to help researchers create projects, manage teams, organize research documents, and collaborate securely.
 
+<br>
 
+**Spring Boot · Spring Security · JWT · MySQL · Redis · Docker · Nginx · AWS EC2 · GitHub Actions · React**
 
-Research Nexus is a full-stack collaborative research platform designed to help researchers create projects, manage teams, organize research documents, and collaborate securely.
+<br>
 
+![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge\&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-brightgreen?style=for-the-badge\&logo=springboot)
+![Spring Security](https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge\&logo=springsecurity)
+![MySQL](https://img.shields.io/badge/MySQL-8-blue?style=for-the-badge\&logo=mysql)
+![Redis](https://img.shields.io/badge/Redis-red?style=for-the-badge\&logo=redis)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker)
+![AWS](https://img.shields.io/badge/AWS-EC2-orange?style=for-the-badge\&logo=amazonaws)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge\&logo=nginx)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge\&logo=githubactions)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge\&logo=react)
 
+</p>
 
-The system is built with a scalable backend architecture using \*\*Spring Boot, Spring Security, JWT, MySQL, Redis, Docker, Nginx, AWS EC2, and GitHub Actions\*\*.
+---
 
-
-
-\---
-
-
-
-\## Architecture
-
-
+# 🏗️ Architecture
 
 ```text
-
-&#x20;                        Internet
-
-&#x20;                           |
-
-&#x20;                           v
-
-&#x20;                      AWS EC2
-
-&#x20;                           |
-
-&#x20;                           v
-
-&#x20;                        Nginx
-
-&#x20;                      Port 8090
-
-&#x20;                           |
-
-&#x20;               +-----------+-----------+
-
-&#x20;               |                       |
-
-&#x20;               v                       v
-
-&#x20;       Spring Boot #1          Spring Boot #2
-
-&#x20;         Container               Container
-
-&#x20;               |                       |
-
-&#x20;               +-----------+-----------+
-
-&#x20;                           |
-
-&#x20;                  +--------+--------+
-
-&#x20;                  |                 |
-
-&#x20;                  v                 v
-
-&#x20;                MySQL             Redis
-
+                         🌍 Internet
+                              │
+                              ▼
+                         ☁️ AWS EC2
+                              │
+                              ▼
+                         ┌─────────┐
+                         │  Nginx  │
+                         │  :8090  │
+                         └────┬────┘
+                              │
+                 ┌────────────┴────────────┐
+                 │                         │
+                 ▼                         ▼
+        ┌─────────────────┐       ┌─────────────────┐
+        │  Spring Boot #1 │       │  Spring Boot #2 │
+        │    Container    │       │    Container    │
+        └────────┬────────┘       └────────┬────────┘
+                 │                         │
+                 └────────────┬────────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                    ▼                   ▼
+                ┌───────┐           ┌───────┐
+                │ MySQL │           │ Redis │
+                └───────┘           └───────┘
 ```
 
+The backend runs multiple Spring Boot instances behind Nginx, providing **horizontal scaling and load distribution**.
 
+---
 
-The backend runs multiple Spring Boot instances behind Nginx, providing \*\*horizontal scaling and load distribution\*\*.
+# ✨ Features
 
+## 🔐 Authentication & Security
 
+* User registration and login
+* JWT-based authentication
+* Spring Security integration
+* Password hashing using BCrypt
+* Protected REST APIs
+* Role-based authorization
+* Project-level access control
+* CORS configuration
+* Secure HTTP response headers
 
-\---
+---
 
+## 🔬 Research Project Management
 
+* Create research projects
+* View owned and accessible projects
+* View project details
+* Manage project members
+* Assign project roles
+* Enforce project-level permissions
 
-\## Features
+---
 
+## 📄 Document Management
 
+* Upload research documents
+* Retrieve project documents
+* Organize documents by research project
+* Secure document access
+* Project-based document authorization
 
-\### Authentication and Security
+---
 
+## 👥 Collaboration
 
+* Add members to research projects
+* Manage project membership
+* Owner and member roles
+* Collaborative project workspace
 
-\* User registration and login
+---
 
-\* JWT-based authentication
+# 🛠️ Technology Stack
 
-\* Spring Security integration
+## Backend
 
-\* Password hashing using BCrypt
+| Technology          | Usage                 |
+| ------------------- | --------------------- |
+| ☕ Java 21           | Backend               |
+| 🌱 Spring Boot      | Application framework |
+| 🔐 Spring Security  | Security              |
+| 🎫 JWT              | Authentication        |
+| 🗄️ Spring Data JPA | Data access           |
+| 🔧 Hibernate        | ORM                   |
+| 🌐 REST APIs        | Communication         |
 
-\* Protected REST APIs
+## Database & Caching
 
-\* Role-based authorization
+| Technology | Usage            |
+| ---------- | ---------------- |
+| 🐬 MySQL 8 | Primary database |
+| ⚡ Redis    | Caching          |
 
-\* Project-level access control
+## DevOps & Infrastructure
 
-\* CORS configuration
+| Technology        | Usage                         |
+| ----------------- | ----------------------------- |
+| 🐳 Docker         | Containerization              |
+| 🐳 Docker Compose | Infrastructure                |
+| 🌐 Nginx          | Reverse proxy / Load balancer |
+| ☁️ AWS EC2        | Deployment                    |
+| ⚙️ GitHub Actions | CI/CD                         |
+| 🔀 Git            | Version control               |
 
-\* Secure HTTP response headers
+## Frontend
 
+| Technology    | Usage                |
+| ------------- | -------------------- |
+| ⚛️ React      | Frontend             |
+| ⚡ Vite        | Build tool           |
+| 🟨 JavaScript | Programming language |
 
+---
 
-\### Research Project Management
-
-
-
-\* Create research projects
-
-\* View owned and accessible projects
-
-\* View project details
-
-\* Manage project members
-
-\* Assign project roles
-
-\* Enforce project-level permissions
-
-
-
-\### Document Management
-
-
-
-\* Upload research documents
-
-\* Retrieve project documents
-
-\* Organize documents by research project
-
-\* Secure document access
-
-\* Project-based document authorization
-
-
-
-\### Collaboration
-
-
-
-\* Add members to research projects
-
-\* Manage project membership
-
-\* Owner and member roles
-
-\* Collaborative project workspace
-
-
-
-\---
-
-
-
-\## Technology Stack
-
-
-
-\### Backend
-
-
-
-\* Java 21
-
-\* Spring Boot
-
-\* Spring Security
-
-\* JWT
-
-\* Spring Data JPA
-
-\* Hibernate
-
-\* REST APIs
-
-
-
-\### Database and Caching
-
-
-
-\* MySQL 8
-
-\* Redis
-
-
-
-\### DevOps and Infrastructure
-
-
-
-\* Docker
-
-\* Docker Compose
-
-\* Nginx
-
-\* AWS EC2
-
-\* GitHub Actions
-
-\* Git
-
-
-
-\### Frontend
-
-
-
-\* React
-
-\* Vite
-
-\* JavaScript
-
-
-
-Frontend repository:
-
-
-
-https://github.com/Karthik-nan/research-nexus-frontend
-
-
-
-\---
-
-
-
-\## Backend Architecture
-
-
+# 🧩 Backend Architecture
 
 ```text
-
-&#x20;                        Client
-
-&#x20;                           |
-
-&#x20;                           v
-
-&#x20;                         Nginx
-
-&#x20;                           |
-
-&#x20;                 +---------+---------+
-
-&#x20;                 |                   |
-
-&#x20;                 v                   v
-
-&#x20;          Backend Instance 1   Backend Instance 2
-
-&#x20;                 |                   |
-
-&#x20;                 +---------+---------+
-
-&#x20;                           |
-
-&#x20;                   +-------+-------+
-
-&#x20;                   |               |
-
-&#x20;                   v               v
-
-&#x20;                 MySQL           Redis
-
+                         Client
+                           │
+                           ▼
+                         Nginx
+                           │
+                ┌──────────┴──────────┐
+                │                     │
+                ▼                     ▼
+         Backend Instance 1    Backend Instance 2
+                │                     │
+                └──────────┬──────────┘
+                           │
+                    ┌──────┴──────┐
+                    │             │
+                    ▼             ▼
+                  MySQL         Redis
 ```
 
-
-
-Nginx acts as the \*\*reverse proxy and load balancer\*\*, distributing incoming requests between the two Spring Boot application instances.
-
-
+Nginx acts as the **reverse proxy and load balancer**, distributing incoming requests between the two Spring Boot application instances.
 
 Both backend instances use the same application image and connect to the shared MySQL and Redis services.
 
+---
 
-
-\---
-
-
-
-\## Authentication Flow
-
-
+# 🔐 Authentication Flow
 
 ```text
-
 User
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 Login Request
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 POST /api/users/login
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 Spring Security
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 Credentials Verified
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 JWT Generated
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 Client
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 Authorization: Bearer <token>
-
-&#x20;|
-
-&#x20;v
-
+ │
+ ▼
 Protected REST API
-
 ```
 
-
-
-Example protected request:
-
-
+### Protected Request
 
 ```http
-
 GET /api/users/me
-
-Authorization: Bearer <JWT\_TOKEN>
-
+Authorization: Bearer <JWT_TOKEN>
 ```
 
+---
 
+# 🌐 API Examples
 
-\---
-
-
-
-\## API Examples
-
-
-
-\### Authentication
-
-
+## Authentication
 
 ```text
-
 POST /api/users/register
-
 POST /api/users/login
-
 GET  /api/users/me
-
 ```
 
-
-
-\### Projects
-
-
+## Projects
 
 ```text
-
 GET  /api/projects
-
 POST /api/projects
-
 GET  /api/projects/{id}
-
 ```
 
-
-
-\### Members
-
-
+## Members
 
 ```text
-
 GET  /api/projects/{id}/members
-
 POST /api/projects/{id}/members
-
 ```
 
-
-
-\### Documents
-
-
+## Documents
 
 ```text
-
 GET  /api/documents/project/{id}
-
 POST /api/documents/...
-
 ```
 
+---
 
+# 🐳 Docker Deployment
 
-\---
+The complete backend infrastructure is containerized using **Docker Compose**.
 
-
-
-\# Docker Deployment
-
-
-
-The complete backend infrastructure is containerized using Docker Compose.
-
-
-
-The deployment consists of:
-
-
+### Containers
 
 ```text
-
-research-nexus-1
-
-research-nexus-2
-
-research-nexus-mysql
-
-research-nexus-redis
-
-research-nexus-nginx
-
+┌──────────────────────────────────────────┐
+│              Docker Compose              │
+│                                          │
+│  ┌────────────────────────────────────┐  │
+│  │        research-nexus-nginx        │  │
+│  └──────────────────┬─────────────────┘  │
+│                     │                    │
+│        ┌────────────┴────────────┐       │
+│        │                         │       │
+│        ▼                         ▼       │
+│ research-nexus-1        research-nexus-2│
+│        │                         │       │
+│        └────────────┬────────────┘       │
+│                     │                    │
+│              ┌──────┴──────┐             │
+│              ▼             ▼             │
+│     research-nexus-    research-nexus-  │
+│         mysql              redis         │
+│                                          │
+└──────────────────────────────────────────┘
 ```
-
-
 
 The two Spring Boot instances use the same Docker image:
 
-
-
 ```text
-
 research-nexus:latest
-
 ```
-
-
 
 Nginx exposes the backend through:
 
-
-
 ```text
-
 Port 8090
-
 ```
 
+---
 
-
-\---
-
-
-
-\# Nginx Load Balancing
-
-
+# ⚖️ Nginx Load Balancing
 
 Nginx sits in front of the Spring Boot application instances.
 
-
-
 ```text
-
-&#x20;                    Client
-
-&#x20;                      |
-
-&#x20;                      v
-
-&#x20;                    Nginx
-
-&#x20;                      |
-
-&#x20;             +--------+--------+
-
-&#x20;             |                 |
-
-&#x20;             v                 v
-
-&#x20;         Backend 1         Backend 2
-
+                    Client
+                      │
+                      ▼
+                  ┌───────┐
+                  │ Nginx │
+                  └───┬───┘
+                      │
+             ┌────────┴────────┐
+             │                 │
+             ▼                 ▼
+        Backend 1          Backend 2
 ```
-
-
 
 Incoming requests are distributed across both application instances.
 
+This provides a basic form of **horizontal scaling**, allowing the backend to handle more concurrent traffic than a single application container.
 
+---
 
-This provides a basic form of \*\*horizontal scaling\*\*, allowing the backend to handle more concurrent traffic than a single application container.
+# ☁️ AWS EC2 Deployment
 
-
-
-\---
-
-
-
-\# AWS EC2 Deployment
-
-
-
-Research Nexus is deployed on an \*\*AWS EC2 instance\*\*.
-
-
+Research Nexus is deployed on an **AWS EC2 instance**.
 
 The EC2 server runs:
 
-
-
-\* Docker
-
-\* Docker Compose
-
-\* Nginx
-
-\* Two Spring Boot application containers
-
-\* MySQL
-
-\* Redis
-
-
+* Docker
+* Docker Compose
+* Nginx
+* Two Spring Boot application containers
+* MySQL
+* Redis
 
 The backend is exposed through Nginx rather than exposing the Spring Boot containers directly.
 
-
-
 ```text
-
 Internet
-
-&#x20;  |
-
-&#x20;  v
-
+   │
+   ▼
 AWS EC2
-
-&#x20;  |
-
-&#x20;  v
-
+   │
+   ▼
 Nginx :8090
-
-&#x20;  |
-
-&#x20;  +------ Spring Boot #1
-
-&#x20;  |
-
-&#x20;  +------ Spring Boot #2
-
+   │
+   ├──────────────► Spring Boot #1
+   │
+   └──────────────► Spring Boot #2
 ```
 
+---
 
+# 🔄 CI/CD Pipeline
 
-\---
+Research Nexus uses **GitHub Actions** to automate continuous integration and deployment.
 
-
-
-\# CI/CD Pipeline
-
-
-
-Research Nexus uses \*\*GitHub Actions\*\* to automate continuous integration and deployment.
-
-
-
-\## Continuous Integration
-
-
+## Continuous Integration
 
 Every push and pull request targeting the `main` branch triggers the CI build.
 
-
-
 ```text
-
 Developer
-
-&#x20;   |
-
-&#x20;   | git push / Pull Request
-
-&#x20;   v
-
+   │
+   │ git push / Pull Request
+   ▼
 GitHub
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 GitHub Actions
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Checkout Source
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Setup Java 21
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Maven Build
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Build Successful
-
 ```
-
-
 
 The application is built using:
 
-
-
 ```bash
-
 chmod +x mvnw
-
 ./mvnw clean package -DskipTests
-
 ```
-
-
 
 The CI pipeline ensures that the application can be successfully built before deployment.
 
+---
 
-
-\---
-
-
-
-\## Continuous Deployment
-
-
+# 🚀 Continuous Deployment
 
 When a change is pushed to the `main` branch and the build succeeds, GitHub Actions automatically deploys the latest version to AWS EC2.
 
-
-
 ```text
-
 Developer
-
-&#x20;   |
-
-&#x20;   | git push origin main
-
-&#x20;   v
-
+   │
+   │ git push origin main
+   ▼
 GitHub Repository
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 GitHub Actions
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 CI Build
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Build Successful
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 SSH Connection to EC2
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Pull Latest Code
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Build Docker Images
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Restart Backend Containers
-
-&#x20;   |
-
-&#x20;   v
-
+   │
+   ▼
 Nginx
-
-&#x20;   |
-
-&#x20;   v
-
-Live Application
-
+   │
+   ▼
+🚀 Live Application
 ```
 
-
-
-The deployment process executes:
-
-
+### Deployment Commands
 
 ```bash
-
-cd \~/research-nexus
+cd ~/research-nexus
 
 git pull origin main
 
-
-
 docker compose build research-nexus-1 research-nexus-2
-
-
 
 docker compose up -d --no-deps research-nexus-1 research-nexus-2
 
-
-
 docker image prune -f
-
 ```
-
-
 
 This automates the deployment process and eliminates the need to manually rebuild and restart the backend after every successful change.
 
+---
 
-
-\---
-
-
-
-\# GitHub Actions
-
-
+# ⚙️ GitHub Actions
 
 The CI/CD workflow is located at:
 
-
-
 ```text
-
 .github/workflows/ci.yml
-
 ```
-
-
 
 The workflow contains two jobs:
 
-
-
 ```text
-
 build
-
-&#x20; |
-
-&#x20; v
-
+  │
+  ▼
 deploy
-
 ```
-
-
 
 The deployment job depends on the successful completion of the build job:
 
-
-
 ```yaml
-
 needs: build
-
 ```
-
-
 
 Deployment is restricted to pushes on the `main` branch:
 
-
-
 ```yaml
-
-if: github.event\_name == 'push' \&\& github.ref == 'refs/heads/main'
-
+if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 ```
-
-
 
 This prevents pull requests from automatically deploying to the production EC2 environment.
 
+---
 
+# 🔑 Deployment Secrets
 
-\---
-
-
-
-\# Deployment Secrets
-
-
-
-EC2 deployment credentials are securely stored using \*\*GitHub Actions Secrets\*\*.
-
-
-
-The workflow uses:
-
-
+EC2 deployment credentials are securely stored using **GitHub Actions Secrets**.
 
 ```text
-
-EC2\_HOST
-
-EC2\_USER
-
-EC2\_SSH\_KEY
-
+EC2_HOST
+EC2_USER
+EC2_SSH_KEY
 ```
-
-
 
 The private SSH key and server credentials are not committed to the repository.
 
-
-
 GitHub Actions injects these secrets only during the deployment process.
 
+---
 
+# 💻 Local Development
 
-\---
-
-
-
-\# Local Development
-
-
-
-\## Prerequisites
-
-
+## Prerequisites
 
 Install:
 
+```text
+Java 21
+Maven
+MySQL
+Redis
+Docker
+Docker Compose
+Git
+```
 
+---
 
-\* Java 21
-
-\* Maven
-
-\* MySQL
-
-\* Redis
-
-\* Docker
-
-\* Docker Compose
-
-\* Git
-
-
-
-\---
-
-
-
-\## Clone the Repository
-
-
+## 📥 Clone the Repository
 
 ```bash
-
 git clone https://github.com/Karthik-nan/research-nexus.git
 
 cd research-nexus
-
 ```
 
+---
 
+## ▶️ Run with Maven
 
-\---
-
-
-
-\## Run with Maven
-
-
-
-Linux/macOS:
-
-
+### Linux / macOS
 
 ```bash
-
 ./mvnw spring-boot:run
-
 ```
 
-
-
-Windows:
-
-
+### Windows
 
 ```powershell
-
-.\\mvnw.cmd spring-boot:run
-
+.\mvnw.cmd spring-boot:run
 ```
 
+---
 
-
-\---
-
-
-
-\## Run with Docker Compose
-
-
+## 🐳 Run with Docker Compose
 
 Start the complete infrastructure:
 
-
-
 ```bash
-
 docker compose up -d
-
 ```
-
-
 
 Check running containers:
 
-
-
 ```bash
-
 docker ps
-
 ```
-
-
 
 Stop the infrastructure:
 
-
-
 ```bash
-
 docker compose down
-
 ```
 
+---
 
-
-\---
-
-
-
-\# Project Structure
-
-
+# 📁 Project Structure
 
 ```text
-
 research-nexus/
-
-|
-
-+-- src/
-
-|   +-- main/
-
-|       +-- java/
-
-|       +-- resources/
-
-|
-
-+-- nginx/
-
-|   +-- nginx.conf
-
-|
-
-+-- .github/
-
-|   +-- workflows/
-
-|       +-- ci.yml
-
-|
-
-+-- docker-compose.yml
-
-+-- Dockerfile
-
-+-- pom.xml
-
-+-- mvnw
-
-+-- mvnw.cmd
-
-+-- README.md
-
+│
+├── src/
+│   └── main/
+│       ├── java/
+│       └── resources/
+│
+├── nginx/
+│   └── nginx.conf
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── docker-compose.yml
+├── Dockerfile
+├── pom.xml
+├── mvnw
+├── mvnw.cmd
+└── README.md
 ```
 
+---
 
+# 📈 Scalability
 
-\---
+The application demonstrates **horizontal backend scaling**.
 
-
-
-\# Scalability
-
-
-
-The application demonstrates \*\*horizontal backend scaling\*\*.
-
-
-
-A traditional single-instance deployment would look like:
-
-
+### Traditional Single Instance
 
 ```text
-
 Client
-
-&#x20; |
-
-&#x20; v
-
+  │
+  ▼
 Backend
-
 ```
 
-
-
-Research Nexus instead uses:
-
-
+### Research Nexus
 
 ```text
-
 Client
-
-&#x20; |
-
-&#x20; v
-
+  │
+  ▼
 Nginx
-
-&#x20; |
-
-&#x20; +------ Backend Instance 1
-
-&#x20; |
-
-&#x20; +------ Backend Instance 2
-
+  │
+  ├──────────────► Backend Instance 1
+  │
+  └──────────────► Backend Instance 2
 ```
-
-
 
 Both instances run the same Spring Boot application and share the same MySQL and Redis infrastructure.
 
-
-
 This architecture allows additional backend instances to be introduced as application traffic grows.
 
+---
 
-
-\---
-
-
-
-\# Redis
-
-
+# ⚡ Redis
 
 Redis is included as a shared infrastructure component for caching and future distributed application capabilities.
 
-
-
 The architecture is designed so that multiple Spring Boot instances can communicate with the same Redis service rather than maintaining separate instance-local state.
 
+---
 
+# 🗄️ Database
 
-\---
-
-
-
-\# Database
-
-
-
-Research Nexus uses \*\*MySQL 8\*\* as its primary relational database.
-
-
+Research Nexus uses **MySQL 8** as its primary relational database.
 
 The application uses:
 
-
-
-\* Spring Data JPA
-
-\* Hibernate
-
-\* Repository-based data access
-
-\* Project and member relationships
-
-\* Persistent user and project data
-
-
+* Spring Data JPA
+* Hibernate
+* Repository-based data access
+* Project and member relationships
+* Persistent user and project data
 
 The MySQL database runs as a Docker container in the EC2 deployment.
 
+---
 
-
-\---
-
-
-
-\# Security
-
-
+# 🛡️ Security
 
 The application implements:
 
-
-
-\* JWT authentication
-
-\* Spring Security
-
-\* BCrypt password hashing
-
-\* Protected REST endpoints
-
-\* Role-based authorization
-
-\* Project-level authorization
-
-\* CORS configuration
-
-\* Secure HTTP response headers
-
-
+* JWT authentication
+* Spring Security
+* BCrypt password hashing
+* Protected REST endpoints
+* Role-based authorization
+* Project-level authorization
+* CORS configuration
+* Secure HTTP response headers
 
 Protected endpoints require a valid JWT:
 
-
-
 ```text
-
-Authorization: Bearer <JWT\_TOKEN>
-
+Authorization: Bearer <JWT_TOKEN>
 ```
 
+---
 
+# 🔮 Future Improvements
 
-\---
+* Kubernetes deployment
+* Automated database migrations
+* Automated test execution in CI
+* Docker image registry
+* Zero-downtime deployments
+* Monitoring and observability
+* Centralized logging
+* WebSocket-based real-time collaboration
+* Infrastructure as Code
+* Automatic cloud scaling
+* Production-grade secret management
 
+---
 
+# 🔗 Related Repositories
 
-\# Future Improvements
+## Frontend
 
+<p>
+<a href="https://github.com/Karthik-nan/research-nexus-frontend">
+<img src="https://img.shields.io/badge/Frontend-GitHub-181717?style=for-the-badge&logo=github">
+</a>
+</p>
 
+## Backend
 
-\* Kubernetes deployment
+<p>
+<a href="https://github.com/Karthik-nan/research-nexus">
+<img src="https://img.shields.io/badge/Backend-GitHub-181717?style=for-the-badge&logo=github">
+</a>
+</p>
 
-\* Automated database migrations
+---
 
-\* Automated test execution in CI
+# 👨‍💻 Author
 
-\* Docker image registry
+## Karthik Nandagiri
 
-\* Zero-downtime deployments
+### Interests
 
-\* Monitoring and observability
+* Java Backend Development
+* Spring Boot
+* Distributed Systems
+* System Design
+* Cloud Computing
+* DevOps
+* AI and LLM Integration
 
-\* Centralized logging
+---
 
-\* WebSocket-based real-time collaboration
+<p align="center">
 
-\* Infrastructure as Code
+## ⭐ Project
 
-\* Automatic cloud scaling
+**If you find Research Nexus useful or interesting, consider giving the repository a star.**
 
-\* Production-grade secret management
-
-
-
-\---
-
-
-
-\# Related Repository
-
-
-
-\## Frontend
-
-
-
-https://github.com/Karthik-nan/research-nexus-frontend
-
-
-
-\## Backend
-
-
-
-https://github.com/Karthik-nan/research-nexus
-
-
-
-\---
-
-
-
-\# Author
-
-
-
-\*\*Karthik Nandagiri\*\*
-
-
-
-\### Interests
-
-
-
-\* Java Backend Development
-
-\* Spring Boot
-
-\* Distributed Systems
-
-\* System Design
-
-\* Cloud Computing
-
-\* DevOps
-
-\* AI and LLM Integration
-
-
-
-\---
-
-
-
-\## ⭐ Project
-
-
-
-If you find Research Nexus useful or interesting, consider giving the repository a star.
-
-
-
+</p>
