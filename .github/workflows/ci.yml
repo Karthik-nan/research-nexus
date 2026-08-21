@@ -1,4 +1,4 @@
-name: Research Nexus CI
+name: Research Nexus CI/CD
 
 on:
   push:
@@ -24,4 +24,23 @@ jobs:
           cache: maven
 
       - name: Build application
-        run: ./mvnw clean package -DskipTests
+        run: chmod +x mvnw && ./mvnw clean package -DskipTests
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/research-nexus
+            git pull origin main
+            docker compose build research-nexus-1 research-nexus-2
+            docker compose up -d --no-deps research-nexus-1 research-nexus-2
+            docker image prune -f
