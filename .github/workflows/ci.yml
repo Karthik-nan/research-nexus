@@ -32,6 +32,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Test EC2 SSH port
+        run: |
+          timeout 10 bash -c '</dev/tcp/${{ secrets.EC2_HOST }}/22' \
+            && echo "EC2 port 22 is reachable" \
+            || (echo "EC2 port 22 is NOT reachable" && exit 1)
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
