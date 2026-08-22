@@ -24,7 +24,7 @@ jobs:
           cache: maven
 
       - name: Build application
-        run: chmod +x mvnw && ./mvnw clean package -DskipTests
+        run: chmod +x mvnw && ./mvnw clean package
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
