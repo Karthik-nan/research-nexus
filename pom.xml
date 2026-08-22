@@ -96,6 +96,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- H2 DATABASE FOR TESTS -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- REDIS -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
